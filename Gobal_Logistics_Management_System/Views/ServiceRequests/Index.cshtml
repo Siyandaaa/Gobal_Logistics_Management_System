@@ -1,0 +1,193 @@
+﻿@using Global_Logistics_Management_System.Models.Entities
+@model List<ServiceRequest>
+
+@{
+    ViewData["Title"] = "Service Requests";
+    var statusFilter = ViewBag.StatusFilter as ServiceRequestStatus?;
+    var contractIdFilter = ViewBag.ContractIdFilter as int?;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="fas fa-clipboard-list me-2 text-primary"></i>Service Requests</h2>
+    <div>
+        <a asp-controller="Contracts" asp-action="Index" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-file-contract me-1"></i> View Contracts
+        </a>
+        <a asp-action="Create" class="btn btn-primary" id="newRequestBtn">
+            <i class="fas fa-plus-circle me-1"></i> New Request
+        </a>
+    </div>
+</div>
+
+<!-- Filter Card -->
+<div class="filter-card shadow-sm">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label fw-semibold"><i class="fas fa-tag me-1"></i>Status</label>
+            <select name="status" class="form-select" asp-items="ViewBag.StatusList">
+                <option value="">All Statuses</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-semibold"><i class="fas fa-hashtag me-1"></i>Contract ID</label>
+            <input type="number" name="contractId" class="form-control" placeholder="e.g., 5" value="@contractIdFilter" />
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-search me-1"></i> Apply Filters
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">
+                <i class="fas fa-undo-alt me-1"></i> Reset
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Requests Table -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Contract</th>
+                        <th>Description</th>
+                        <th>Cost (ZAR)</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i>
+                                <h5>No service requests found</h5>
+                                <p>Adjust filters or create a new request.</p>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            string statusBadge = item.Status switch
+                            {
+                                ServiceRequestStatus.Pending => "badge-pending",
+                                ServiceRequestStatus.InProgress => "badge-active",
+                                ServiceRequestStatus.Completed => "badge-completed",
+                                ServiceRequestStatus.Cancelled => "badge-expired",
+                                _ => "badge-secondary"
+                            };
+                            <tr>
+                                <td><span class="fw-semibold">#@item.ServiceRequestId</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-light rounded-circle p-2 me-2">
+                                            <i class="fas fa-file-signature text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">Contract #@item.ContractId</div>
+                                            <small class="text-muted">@item.Contract?.Client?.Name</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@(item.Description.Length > 40 ? item.Description.Substring(0, 37) + "..." : item.Description)</td>
+                                <td class="fw-semibold">@item.Cost.ToString("C")</td>
+                                <td><span class="badge-status @statusBadge">@item.Status</span></td>
+                                <td>@item.CreatedAt.ToString("dd MMM yyyy")</td>
+                                <td class="text-end">
+                                    <a asp-action="Details" asp-route-id="@item.ServiceRequestId" class="btn btn-sm btn-outline-secondary me-1" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@item.ServiceRequestId" class="btn btn-sm btn-outline-primary" title="Edit Status">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mt-4 g-3">
+    <div class="col-md-3">
+        <div class="card stat-card bg-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted text-uppercase small">Total Requests</h6>
+                        <h3 class="mb-0">@Model.Count</h3>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-clipboard-list fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card bg-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted text-uppercase small">Pending</h6>
+                        <h3 class="mb-0">@Model.Count(r => r.Status == ServiceRequestStatus.Pending)</h3>
+                    </div>
+                    <div class="bg-warning bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-clock fa-2x text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card bg-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted text-uppercase small">In Progress</h6>
+                        <h3 class="mb-0">@Model.Count(r => r.Status == ServiceRequestStatus.InProgress)</h3>
+                    </div>
+                    <div class="bg-info bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-spinner fa-2x text-info"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card bg-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted text-uppercase small">Completed</h6>
+                        <h3 class="mb-0">@Model.Count(r => r.Status == ServiceRequestStatus.Completed)</h3>
+                    </div>
+                    <div class="bg-success bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Disable "New Request" button if no contracts? For now, just a placeholder.
+        $('#newRequestBtn').click(function(e) {
+            // Could redirect to contract selection or show a modal.
+            // For now, just go to a page where they can pick a contract.
+            window.location.href = '@Url.Action("Index", "Contracts")';
+            e.preventDefault();
+        });
+    </script>
+}

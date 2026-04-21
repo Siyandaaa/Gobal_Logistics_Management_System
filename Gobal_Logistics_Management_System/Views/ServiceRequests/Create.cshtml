@@ -1,0 +1,134 @@
+﻿@model Global_Logistics_Management_System.Models.ViewModels.ServiceRequestCreateViewModel
+
+@{
+    ViewData["Title"] = "Create Service Request";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-controller="Contracts" asp-action="Details" asp-route-id="@Model.ContractId" class="text-muted me-3">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <h2 class="fw-bold mb-0"><i class="fas fa-clipboard-list me-2 text-primary"></i>New Service Request</h2>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Request Details</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" id="requestForm">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                    <input type="hidden" asp-for="ContractId" />
+
+                    <!-- Contract Info Card -->
+                    <div class="bg-light p-3 rounded mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">Contract</small>
+                                <div class="fw-semibold">@Model.ContractNumber</div>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">Client</small>
+                                <div class="fw-semibold">@Model.ClientName</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="RequestType" class="form-label fw-semibold">
+                            <i class="fas fa-tag me-1"></i>Request Type
+                        </label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="RequestType" id="standard" value="Standard" checked />
+                            <label class="btn btn-outline-primary" for="standard">
+                                <i class="fas fa-truck me-1"></i> Standard
+                            </label>
+                            <input type="radio" class="btn-check" name="RequestType" id="priority" value="Priority" />
+                            <label class="btn btn-outline-warning" for="priority">
+                                <i class="fas fa-rocket me-1"></i> Priority
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label fw-semibold">
+                            <i class="fas fa-align-left me-1"></i>Description
+                        </label>
+                        <textarea asp-for="Description" class="form-control" rows="4" 
+                                  placeholder="Describe the service request in detail..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="CostUSD" class="form-label fw-semibold">
+                            <i class="fas fa-dollar-sign me-1"></i>Estimated Cost (USD)
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">$</span>
+                            <input asp-for="CostUSD" class="form-control" id="CostUSD" placeholder="0.00" />
+                        </div>
+                        <span asp-validation-for="CostUSD" class="text-danger small"></span>
+                    </div>
+
+                    <hr />
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-save me-1"></i> Create Request
+                        </button>
+                        <a asp-controller="Contracts" asp-action="Details" asp-route-id="@Model.ContractId" class="btn btn-outline-secondary px-4">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side: Live Calculation Card -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-calculator me-2 text-primary"></i>Currency Conversion</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-exchange-alt fa-2x text-muted mb-2"></i>
+                    <h6>USD to ZAR Exchange</h6>
+                </div>
+                <div id="conversionResult" class="bg-light p-4 rounded text-center">
+                    <span class="text-muted">Enter USD amount to see conversion</span>
+                </div>
+                <div class="mt-3 small text-muted">
+                    <i class="fas fa-info-circle me-1"></i> Live rates from ExchangeRate-API
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(function() {
+            function updateConversion() {
+                var usd = $('#CostUSD').val();
+                if (usd && !isNaN(usd) && parseFloat(usd) >= 0) {
+                    $.get('/ServiceRequests/CalculateZar', { usdAmount: usd }, function(data) {
+                        var html = '<div class="mb-2"><span class="text-muted">USD</span><h4>$' + parseFloat(usd).toFixed(2) + '</h4></div>';
+                        html += '<i class="fas fa-arrow-down text-primary mb-2"></i>';
+                        html += '<div><span class="text-muted">ZAR</span><h3 class="text-success">R ' + data.zar.toFixed(2) + '</h3></div>';
+                        html += '<small class="text-muted">Exchange Rate: 1 USD = R ' + data.rate.toFixed(4) + '</small>';
+                        $('#conversionResult').html(html);
+                    });
+                } else {
+                    $('#conversionResult').html('<span class="text-muted">Enter USD amount to see conversion</span>');
+                }
+            }
+
+            $('#CostUSD').on('input', updateConversion);
+            updateConversion(); // initial call
+        });
+    </script>
+}

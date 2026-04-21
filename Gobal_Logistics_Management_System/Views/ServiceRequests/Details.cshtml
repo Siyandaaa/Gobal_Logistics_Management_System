@@ -1,0 +1,134 @@
+﻿@using Global_Logistics_Management_System.Models.Entities
+@model Global_Logistics_Management_System.Models.Entities.ServiceRequest
+@{
+    ViewData["Title"] = $"Request #{Model.ServiceRequestId}";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Index" class="text-muted me-3"><i class="fas fa-arrow-left"></i></a>
+    <h2 class="fw-bold mb-0">Service Request #@Model.ServiceRequestId</h2>
+    @{
+        string statusBadge = Model.Status switch
+        {
+            ServiceRequestStatus.Pending => "badge-pending",
+            ServiceRequestStatus.InProgress => "badge-active",
+            ServiceRequestStatus.Completed => "badge-completed",
+            ServiceRequestStatus.Cancelled => "badge-expired",
+            _ => "badge-secondary"
+        };
+    }
+    <span class="ms-3"><span class="badge-status @statusBadge fs-6">@Model.Status</span></span>
+    <div class="ms-auto">
+        <a asp-action="Edit" asp-route-id="@Model.ServiceRequestId" class="btn btn-outline-primary me-2">
+            <i class="fas fa-edit me-1"></i> Edit
+        </a>
+        <a asp-controller="Contracts" asp-action="Details" asp-route-id="@Model.ContractId" class="btn btn-primary">
+            <i class="fas fa-file-contract me-1"></i> View Contract
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2 text-primary"></i>Request Details</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-3 text-muted">Contract</dt>
+                    <dd class="col-sm-9">
+                        <a asp-controller="Contracts" asp-action="Details" asp-route-id="@Model.ContractId">
+                            #@Model.ContractId - @Model.Contract?.Client?.Name
+                        </a>
+                    </dd>
+
+                    <dt class="col-sm-3 text-muted">Description</dt>
+                    <dd class="col-sm-9">@Model.Description</dd>
+
+                    <dt class="col-sm-3 text-muted">Created</dt>
+                    <dd class="col-sm-9">@Model.CreatedAt.ToString("dd MMMM yyyy HH:mm")</dd>
+
+                    <dt class="col-sm-3 text-muted">Last Updated</dt>
+                    <dd class="col-sm-9">(you could add a property for this)</dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Cost Details Card -->
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-dollar-sign me-2 text-success"></i>Financial Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="bg-light p-3 rounded text-center">
+                            <small class="text-muted">Original Cost (USD)</small>
+                            <h3 class="mb-0">@(Model.CostUSD?.ToString("C2") ?? "N/A")</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="bg-light p-3 rounded text-center">
+                            <small class="text-muted">Final Cost (ZAR)</small>
+                            <h3 class="mb-0 text-success">@Model.Cost.ToString("C")</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <!-- Status Timeline Card -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-history me-2 text-primary"></i>Status Timeline</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled timeline">
+                    <li class="mb-3">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <span class="badge bg-success rounded-circle p-2"><i class="fas fa-check"></i></span>
+                            </div>
+                            <div>
+                                <strong>Created</strong>
+                                <p class="text-muted mb-0">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</p>
+                            </div>
+                        </div>
+                    </li>
+                    @if (Model.Status != ServiceRequestStatus.Pending)
+                    {
+                        <li class="mb-3">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <span class="badge bg-primary rounded-circle p-2"><i class="fas fa-sync-alt"></i></span>
+                                </div>
+                                <div>
+                                    <strong>Status Updated</strong>
+                                    <p class="text-muted mb-0">Current: @Model.Status</p>
+                                </div>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <!-- Actions Card -->
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-cog me-2 text-primary"></i>Actions</h5>
+            </div>
+            <div class="card-body">
+                <a asp-action="Edit" asp-route-id="@Model.ServiceRequestId" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="fas fa-edit me-1"></i> Update Status
+                </a>
+                <a asp-controller="Contracts" asp-action="Details" asp-route-id="@Model.ContractId" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Contract
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

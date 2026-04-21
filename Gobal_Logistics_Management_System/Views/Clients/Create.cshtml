@@ -1,0 +1,75 @@
+﻿@model Global_Logistics_Management_System.Models.Entities.Client
+@{
+    ViewData["Title"] = "Create Client";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Index" class="text-muted me-3"><i class="fas fa-arrow-left"></i></a>
+    <h2 class="fw-bold mb-0"><i class="fas fa-user-plus me-2 text-primary"></i>Create New Client</h2>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Client Information</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="mb-4">
+                        <label asp-for="Name" class="form-label fw-semibold">
+                            <i class="fas fa-building me-1"></i>Company Name
+                        </label>
+                        <input asp-for="Name" class="form-control form-control-lg" placeholder="e.g., Acme Global Logistics" />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="ContactDetails" class="form-label fw-semibold">
+                            <i class="fas fa-address-card me-1"></i>Contact Details
+                        </label>
+                        <textarea asp-for="ContactDetails" class="form-control" rows="3"
+                                  placeholder="Email and phone number..."></textarea>
+                        <span asp-validation-for="ContactDetails" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Region" class="form-label fw-semibold">
+                            <i class="fas fa-globe me-1"></i>Region
+                        </label>
+                        <select asp-for="Region" class="form-select">
+                            <option value="">Select a region...</option>
+                            <option>Gauteng</option>
+                            <option>Western Cape</option>
+                            <option>KwaZulu-Natal</option>
+                            <option>Eastern Cape</option>
+                            <option>Europe</option>
+                            <option>North America</option>
+                            <option>Asia-Pacific</option>
+                            <option>Middle East</option>
+                            <option>South America</option>
+                            <option>Australia</option>
+                        </select>
+                        <span asp-validation-for="Region" class="text-danger small"></span>
+                    </div>
+
+                    <hr />
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-save me-1"></i> Create Client
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,194 @@
+﻿@using Global_Logistics_Management_System.Models.Entities
+@model Global_Logistics_Management_System.Models.ViewModels.ContractIndexViewModel
+@{
+    ViewData["Title"] = "Contracts";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="fas fa-file-contract me-2 text-primary"></i>Contract Management</h2>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="fas fa-plus-circle me-1"></i> New Contract
+    </a>
+</div>
+
+<!-- Filter Card -->
+<div class="filter-card shadow-sm">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label fw-semibold"><i class="far fa-calendar-alt me-1"></i>From Date</label>
+            <input type="date" name="from" class="form-control" value="@Model.FilterFrom?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-semibold"><i class="far fa-calendar-alt me-1"></i>To Date</label>
+            <input type="date" name="to" class="form-control" value="@Model.FilterTo?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-semibold"><i class="fas fa-tag me-1"></i>Status</label>
+            <select name="status" class="form-select" asp-items="Html.GetEnumSelectList<ContractStatus>()">
+                <option value="">All Statuses</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-search me-1"></i> Apply Filters
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">
+                <i class="fas fa-undo-alt me-1"></i> Reset
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Contracts Table -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Client</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Status</th>
+                        <th>Agreement</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Contracts.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="fas fa-file-alt fa-3x mb-3 opacity-50"></i>
+                                <h5>No contracts found</h5>
+                                <p>Create a new contract to get started.</p>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model.Contracts)
+                        {
+                            <tr>
+                                <td><span class="fw-semibold">#@item.ContractId</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-light rounded-circle p-2 me-2">
+                                            <i class="fas fa-building text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">@item.Client?.Name</div>
+                                            <small class="text-muted">@item.Client?.Region</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@item.StartDate.ToString("dd MMM yyyy")</td>
+                                <td>@item.EndDate.ToString("dd MMM yyyy")</td>
+                                <td>
+                                    @{
+                                        string badgeClass = item.Status switch
+                                        {
+                                            ContractStatus.Active => "badge-active",
+                                            ContractStatus.Expired => "badge-expired",
+                                            ContractStatus.Draft => "badge-draft",
+                                            ContractStatus.OnHold => "badge-onhold",
+                                            _ => "badge-secondary"
+                                        };
+                                    }
+                                    <span class="badge-status @badgeClass">
+                                        <i class="fas fa-circle me-1 fa-2xs"></i>@item.Status
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.SignedAgreementPath))
+                                    {
+                                        <a asp-action="DownloadAgreement" asp-route-id="@item.ContractId" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download me-1"></i> PDF
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted"><i class="fas fa-times-circle me-1"></i>Missing</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <a asp-action="Details" asp-route-id="@item.ContractId" class="btn btn-sm btn-outline-secondary me-1" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a asp-controller="ServiceRequests" asp-action="Create" asp-route-contractId="@item.ContractId" class="btn btn-sm btn-outline-primary" title="Add Service Request">
+                                        <i class="fas fa-plus"></i> Request
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mt-4 g-3">
+    <div class="col-md-3">
+        <div class="card stat-card bg-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted text-uppercase small">Total Contracts</h6>
+                        <h3 class="mb-0">@Model.Contracts.Count</h3>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-file-signature fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card bg-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted text-uppercase small">Active</h6>
+                        <h3 class="mb-0">@Model.Contracts.Count(c => c.Status == ContractStatus.Active)</h3>
+                    </div>
+                    <div class="bg-success bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card bg-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted text-uppercase small">Expiring Soon</h6>
+                        <h3 class="mb-0">@Model.Contracts.Count(c => c.EndDate >= DateTime.Today && c.EndDate <= DateTime.Today.AddDays(30) && c.Status == ContractStatus.Active)</h3>
+                    </div>
+                    <div class="bg-warning bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-clock fa-2x text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card bg-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted text-uppercase small">Expired</h6>
+                        <h3 class="mb-0">@Model.Contracts.Count(c => c.Status == ContractStatus.Expired)</h3>
+                    </div>
+                    <div class="bg-danger bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

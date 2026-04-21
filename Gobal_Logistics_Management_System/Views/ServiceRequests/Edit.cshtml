@@ -1,0 +1,76 @@
+﻿@model Global_Logistics_Management_System.Models.Entities.ServiceRequest
+
+@{
+    ViewData["Title"] = $"Edit Request #{Model.ServiceRequestId}";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Details" asp-route-id="@Model.ServiceRequestId" class="text-muted me-3"><i class="fas fa-arrow-left"></i></a>
+    <h2 class="fw-bold mb-0"><i class="fas fa-edit me-2 text-primary"></i>Edit Service Request #@Model.ServiceRequestId</h2>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Update Request Information</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                    <input type="hidden" asp-for="ServiceRequestId" />
+                    <input type="hidden" asp-for="ContractId" />
+                    <input type="hidden" asp-for="CreatedAt" />
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Contract</label>
+                        <input class="form-control bg-light" value="#@Model.ContractId - @Model.Contract?.Client?.Name" readonly />
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label fw-semibold"></label>
+                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="CostUSD" class="form-label fw-semibold">Cost (USD)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="CostUSD" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Cost" class="form-label fw-semibold">Cost (ZAR)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R</span>
+                                <input asp-for="Cost" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Status" class="form-label fw-semibold"></label>
+                        <select asp-for="Status" class="form-select" asp-items="ViewBag.StatusList"></select>
+                        <span asp-validation-for="Status" class="text-danger small"></span>
+                    </div>
+
+                    <hr />
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-save me-1"></i> Save Changes
+                        </button>
+                        <a asp-action="Details" asp-route-id="@Model.ServiceRequestId" class="btn btn-outline-secondary px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

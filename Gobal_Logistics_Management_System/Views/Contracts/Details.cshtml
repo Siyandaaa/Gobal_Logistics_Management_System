@@ -1,0 +1,188 @@
+﻿@using Global_Logistics_Management_System.Models.Entities
+@model Global_Logistics_Management_System.Models.Entities.Contract
+
+@{
+    ViewData["Title"] = $"Contract #{Model.ContractId}";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Index" class="text-muted me-3"><i class="fas fa-arrow-left"></i></a>
+    <h2 class="fw-bold mb-0">Contract #@Model.ContractId</h2>
+    <span class="ms-3">
+        @{
+            string badgeClass = Model.Status switch
+            {
+                ContractStatus.Active => "badge-active",
+                ContractStatus.Expired => "badge-expired",
+                ContractStatus.Draft => "badge-draft",
+                ContractStatus.OnHold => "badge-onhold",
+                _ => ""
+            };
+        }
+        <span class="badge-status @badgeClass fs-6">
+            <i class="fas fa-circle me-1 fa-2xs"></i>@Model.Status
+        </span>
+    </span>
+    <div class="ms-auto">
+        <a asp-controller="ServiceRequests" asp-action="Create" asp-route-contractId="@Model.ContractId" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-1"></i> New Service Request
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Contract Info -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2 text-primary"></i>Contract Details</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-muted">Client</dt>
+                    <dd class="col-sm-8 fw-semibold">@Model.Client?.Name</dd>
+
+                    <dt class="col-sm-4 text-muted">Contact</dt>
+                    <dd class="col-sm-8">@Model.Client?.ContactDetails</dd>
+
+                    <dt class="col-sm-4 text-muted">Region</dt>
+                    <dd class="col-sm-8">@Model.Client?.Region</dd>
+
+                    <dt class="col-sm-4 text-muted">Period</dt>
+                    <dd class="col-sm-8">@Model.StartDate.ToString("dd MMM yyyy") - @Model.EndDate.ToString("dd MMM yyyy")</dd>
+
+                    <dt class="col-sm-4 text-muted">Service Level</dt>
+                    <dd class="col-sm-8">@(Model.ServiceLevel ?? "Not specified")</dd>
+
+                    <dt class="col-sm-4 text-muted">Signed Agreement</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.SignedAgreementPath))
+                        {
+                            <a asp-action="DownloadAgreement" asp-route-id="@Model.ContractId" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-file-pdf me-1"></i> Download PDF
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-warning"><i class="fas fa-exclamation-triangle me-1"></i>Not uploaded</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Quick Stats -->
+    <div class="col-lg-7">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card stat-card bg-white h-100">
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0 bg-primary bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-clipboard-list fa-2x text-primary"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="text-muted text-uppercase small">Total Requests</h6>
+                                <h3 class="mb-0">@Model.ServiceRequests.Count</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card stat-card bg-white h-100">
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0 bg-success bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-dollar-sign fa-2x text-success"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="text-muted text-uppercase small">Total Value (ZAR)</h6>
+                                <h3 class="mb-0">@Model.ServiceRequests.Sum(r => r.Cost).ToString("C")</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Days Remaining Progress Bar -->
+        @{
+            var totalDays = (Model.EndDate - Model.StartDate).TotalDays;
+            var daysElapsed = (DateTime.Today - Model.StartDate).TotalDays;
+            var progressPercent = Math.Min(100, Math.Max(0, (daysElapsed / totalDays) * 100));
+        }
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6 class="mb-2">Contract Timeline</h6>
+                <div class="progress" style="height: 8px;">
+                    <div class="progress-bar @(progressPercent > 90 ? "bg-danger" : "bg-primary")" 
+                         role="progressbar" style="width: @progressPercent%"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2 small text-muted">
+                    <span>Start: @Model.StartDate.ToString("dd MMM")</span>
+                    <span>@Math.Max(0, (Model.EndDate - DateTime.Today).Days) days remaining</span>
+                    <span>End: @Model.EndDate.ToString("dd MMM")</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Service Requests Section -->
+<div class="card shadow-sm border-0 mt-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-history me-2 text-primary"></i>Service Requests</h5>
+        <a asp-controller="ServiceRequests" asp-action="Create" asp-route-contractId="@Model.ContractId" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-plus me-1"></i> Add
+        </a>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.ServiceRequests.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i>
+                <p>No service requests yet.</p>
+                <a asp-controller="ServiceRequests" asp-action="Create" asp-route-contractId="@Model.ContractId" class="btn btn-primary">
+                    Create First Request
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Description</th>
+                            <th>Cost (ZAR)</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var req in Model.ServiceRequests.OrderByDescending(r => r.CreatedAt))
+                        {
+                            string reqBadge = req.Status switch
+                            {
+                                ServiceRequestStatus.Pending => "badge-pending",
+                                ServiceRequestStatus.InProgress => "badge-active",
+                                ServiceRequestStatus.Completed => "badge-completed",
+                                _ => "badge-secondary"
+                            };
+                            <tr>
+                                <td>#@req.ServiceRequestId</td>
+                                <td>@req.Description</td>
+                                <td class="fw-semibold">@req.Cost.ToString("C")</td>
+                                <td><span class="badge-status @reqBadge">@req.Status</span></td>
+                                <td>@req.CreatedAt.ToString("dd MMM yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

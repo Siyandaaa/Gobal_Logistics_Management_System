@@ -1,0 +1,116 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="fas fa-chart-pie me-2 text-primary"></i>Dashboard</h2>
+    <span class="text-muted">@DateTime.Today.ToString("dddd, dd MMMM yyyy")</span>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="card stat-card bg-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted text-uppercase small">Total Contracts</h6>
+                        <h3 class="mb-0">@ViewBag.TotalContracts</h3>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-file-contract fa-2x text-primary"></i>
+                    </div>
+                </div>
+                <small class="text-success"><i class="fas fa-arrow-up me-1"></i>+12% from last month</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card stat-card bg-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted text-uppercase small">Active Contracts</h6>
+                        <h3 class="mb-0">@ViewBag.ActiveContracts</h3>
+                    </div>
+                    <div class="bg-success bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                    </div>
+                </div>
+                <small class="text-muted">Expiring soon: @ViewBag.ExpiringSoon</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card stat-card bg-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted text-uppercase small">Service Requests</h6>
+                        <h3 class="mb-0">@ViewBag.TotalRequests</h3>
+                    </div>
+                    <div class="bg-warning bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-clipboard-list fa-2x text-warning"></i>
+                    </div>
+                </div>
+                <small class="text-muted">Pending: @ViewBag.PendingRequests</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card stat-card bg-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted text-uppercase small">Total Value (ZAR)</h6>
+                        <h3 class="mb-0">@ViewBag.TotalValue.ToString("C0")</h3>
+                    </div>
+                    <div class="bg-info bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-dollar-sign fa-2x text-info"></i>
+                    </div>
+                </div>
+                <small class="text-muted">Across all requests</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row mt-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-clock me-2 text-primary"></i>Recent Service Requests</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    @foreach (var req in ViewBag.RecentRequests)
+                    {
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-semibold">#@req.ServiceRequestId</span> - @req.Description
+                                <br />
+                                <small class="text-muted">Contract: @req.Contract?.Client?.Name</small>
+                            </div>
+                            <span class="badge-status badge-pending">@req.Status</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-bell me-2 text-primary"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a asp-controller="Contracts" asp-action="Create" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="fas fa-plus me-1"></i> New Contract
+                </a>
+                <a asp-controller="ServiceRequests" asp-action="Index" class="btn btn-outline-success w-100">
+                    <i class="fas fa-search me-1"></i> View All Requests
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
