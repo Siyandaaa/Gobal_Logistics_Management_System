@@ -73,53 +73,52 @@ namespace Global_Logistics_Management_System.Controllers
 
             var request = await _context.ServiceRequests
                 .Include(r => r.Contract)
+                .ThenInclude(c => c.Client)
                 .FirstOrDefaultAsync(r => r.ServiceRequestId == id);
 
             if (request == null) return NotFound();
 
-            ViewBag.StatusList = new SelectList(Enum.GetValues<ServiceRequestStatus>(), request.Status);
-            return View(request);
+            var viewModel = new ServiceRequestEditViewModel
+            {
+                Id = request.ServiceRequestId,
+                ContractInfo = $"Contract #{request.ContractId} – {request.Contract?.Client?.Name}",
+                CurrentDescription = request.Description,
+                CurrentCost = request.Cost,
+                Status = request.Status
+            };
+
+            ViewBag.StatusList = new SelectList(Enum.GetValues<ServiceRequestStatus>());
+            return View(viewModel);
         }
 
         // POST: ServiceRequests/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Description,Cost,CostUSD,Status")] ServiceRequest request)
+        public async Task<IActionResult> Edit(int id, ServiceRequestEditViewModel viewModel)
         {
-            if (id != request.ServiceRequestId) return NotFound();
+            if (id != viewModel.Id) return NotFound();
 
             if (!ModelState.IsValid)
             {
-                ViewBag.StatusList = new SelectList(Enum.GetValues<ServiceRequestStatus>(), request.Status);
-                return View(request);
+                ViewBag.StatusList = new SelectList(Enum.GetValues<ServiceRequestStatus>(), viewModel.Status);
+                return View(viewModel);
             }
 
-            try
-            {
-                var existing = await _context.ServiceRequests.FindAsync(id);
-                if (existing == null) return NotFound();
+            var existingRequest = await _context.ServiceRequests.FindAsync(id);
+            if (existingRequest == null) return NotFound();
 
-                // Only allow updating specific fields
-                existing.Description = request.Description;
-                existing.Cost = request.Cost;
-                existing.CostUSD = request.CostUSD;
-                existing.Status = request.Status;
+            // Only update the status
+            existingRequest.Status = viewModel.Status;
+            // Optionally log the change note somewhere
 
-                _context.Update(existing);
-                await _context.SaveChangesAsync();
+            _context.Update(existingRequest);
+            await _context.SaveChangesAsync();
 
-                // Notify observers of status change
-                await _subject.NotifyAsync(existing);
+            // Notify observers of status change
+            await _subject.NotifyAsync(existingRequest);
 
-                TempData["Success"] = "Service request updated successfully.";
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ServiceRequestExists(request.ServiceRequestId)) return NotFound();
-                throw;
-            }
-
-            return RedirectToAction(nameof(Details), new { id = request.ServiceRequestId });
+            TempData["Success"] = $"Request #{id} status updated to {viewModel.Status}.";
+            return RedirectToAction(nameof(Details), new { id = viewModel.Id });
         }
 
         // GET: ServiceRequests/Create?contractId=5
